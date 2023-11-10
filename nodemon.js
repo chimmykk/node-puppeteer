@@ -1,20 +1,23 @@
-const puppeteer = require('puppeteer');
+const { chromium } = require('playwright');
 const fs = require('fs').promises;
 const path = require('path');
 
-const browserExecutablePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-
 async function scrapeAndSave() {
-  const browser = await puppeteer.launch({
-    executablePath: browserExecutablePath,
-    headless: 'new',
+  const browser = await chromium.launch({
+    headless: true,
   });
 
-  const page = await browser.newPage();
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+  });
 
+  const page = await context.newPage();
 
   try {
-    await page.goto('https://livecounts.io/embed/twitter-live-follower-counter/Thotsem22');
+    await page.setViewportSize({ width: 1366, height: 768 });
+    
+    await page.goto('https://livecounts.io/embed/twitter-live-follower-counter/Thotsem22', { waitUntil: 'domcontentloaded', timeout: 0 });
+    
     await page.waitForTimeout(5000);
 
     const followerCount = await page.evaluate(() => {
@@ -49,5 +52,5 @@ async function scrapeAndSave() {
   }
 }
 
-// Set an interval to execute the scraping and saving function every 10 minutes (600,000 milliseconds)
+// Set an interval to execute the scraping and saving function every 5 seconds (5000 milliseconds)
 setInterval(scrapeAndSave, 5000);
